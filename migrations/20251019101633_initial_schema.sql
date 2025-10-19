@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS users
 (
     id                 UUID PRIMARY KEY,
@@ -27,3 +29,13 @@ CREATE TABLE IF NOT EXISTS articles
 
 CREATE INDEX IF NOT EXISTS idx_articles_author_id ON articles (author_id);
 CREATE INDEX IF NOT EXISTS idx_articles_status_created ON articles (status, created_at DESC);
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP INDEX IF EXISTS idx_articles_status_created;
+DROP INDEX IF EXISTS idx_articles_author_id;
+
+DROP TABLE IF EXISTS articles;
+DROP TABLE IF EXISTS users;
+-- +goose StatementEnd

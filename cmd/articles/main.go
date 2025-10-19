@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/config"
 	"github.com/mSulimenko/dev-blog-platform/internal/shared/logger"
 )
@@ -11,5 +12,7 @@ func main() {
 
 	log := logger.New(cfg.Env)
 	defer log.Sync()
+
+	fmt.Println(cfg)
 
 }

@@ -12,6 +12,12 @@ const (
 
 type Config struct {
 	Env string `yaml:"env" env:"ENV" env-default:"local"`
+	Db  DB     `yaml:"db" env-required:"true"`
+}
+
+type DB struct {
+	MigrationsDir string `yaml:"migrations_dir" env:"MIGRATIONS_DIR" env-required:"true"`
+	Dsn           string `yaml:"dsn" env:"MIGRATIONS_DIR" env-required:"true"`
 }
 
 func Load() *Config {
