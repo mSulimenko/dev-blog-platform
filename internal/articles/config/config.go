@@ -12,7 +12,7 @@ const (
 
 type Config struct {
 	Env string `yaml:"env" env:"ENV" env-default:"local"`
-	Db  DB     `yaml:"db" env-required:"true"`
+	DB  DB     `yaml:"db" env-required:"true"`
 }
 
 type DB struct {
