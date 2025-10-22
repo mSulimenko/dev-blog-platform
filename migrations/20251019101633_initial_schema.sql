@@ -1,8 +1,10 @@
 -- +goose Up
 -- +goose StatementBegin
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS users
 (
-    id                 UUID PRIMARY KEY,
+    id                 UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username           VARCHAR(50) UNIQUE  NOT NULL,
     email              VARCHAR(100) UNIQUE NOT NULL,
     password_hash      VARCHAR(255)        NOT NULL,
@@ -13,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS articles
 (
-    id         UUID PRIMARY KEY,
+    id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title      VARCHAR(255) NOT NULL,
     content    TEXT         NOT NULL,
     author_id  UUID         NOT NULL,
@@ -27,8 +29,6 @@ CREATE TABLE IF NOT EXISTS articles
             ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_articles_author_id ON articles (author_id);
-CREATE INDEX IF NOT EXISTS idx_articles_status_created ON articles (status, created_at DESC);
 -- +goose StatementEnd
 
 -- +goose Down
@@ -38,4 +38,5 @@ DROP INDEX IF EXISTS idx_articles_author_id;
 
 DROP TABLE IF EXISTS articles;
 DROP TABLE IF EXISTS users;
+DROP EXTENSION IF EXISTS "uuid-ossp";
 -- +goose StatementEnd
