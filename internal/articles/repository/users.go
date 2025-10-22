@@ -87,7 +87,7 @@ func (u *UsersRepository) ListUsers(ctx context.Context) ([]*models.User, error)
 	}
 
 	if len(users) == 0 {
-		return []*models.User{}, nil
+		return nil, nil
 	}
 
 	return users, nil
