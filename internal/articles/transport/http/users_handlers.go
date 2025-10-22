@@ -9,17 +9,23 @@ import (
 )
 
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var req dto.UserReq
+	var req dto.UserCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.log.Errorw("Failed to decode request", "error", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		h.log.Errorw("unable to decode", "error", err, "request", req)
+		h.sendError(w, http.StatusBadRequest, ErrCodeInvalidJSON, "Invalid JSON format")
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		h.log.Errorw("Validation failed", "error", err)
+		h.sendError(w, http.StatusBadRequest, ErrCodeValidation, "Invalid input data")
 		return
 	}
 
 	userID, err := h.usersService.CreateUser(r.Context(), &req)
 	if err != nil {
-		h.log.Errorw("Failed to create user", "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.log.Errorw("Failed to create user", "error", err, "request", req)
+		h.sendError(w, http.StatusInternalServerError, ErrCodeInternal, "Internal server error")
 		return
 	}
 
@@ -48,7 +54,7 @@ func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.usersService.ListUsers(r.Context())
 	if err != nil {
 		h.log.Errorw("Failed to list users", "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.sendError(w, http.StatusInternalServerError, ErrCodeInternal, "Internal server error")
 		return
 	}
 
@@ -59,17 +65,23 @@ func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	var req dto.UserReq
+	var req dto.UserUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.log.Errorw("Failed to decode request", "error", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		h.sendError(w, http.StatusBadRequest, ErrCodeValidation, "Invalid JSON format")
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		h.log.Errorw("Failed to validate request", "error", err)
+		h.sendError(w, http.StatusBadRequest, ErrCodeValidation, "Invalid input data")
 		return
 	}
 
 	err := h.usersService.UpdateUser(r.Context(), id, &req)
 	if err != nil {
 		h.log.Errorw("Failed to update user", "id", id, "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.sendError(w, http.StatusInternalServerError, ErrCodeInternal, "Internal server error")
 		return
 	}
 

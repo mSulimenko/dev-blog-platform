@@ -4,27 +4,30 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-playground/validator/v10"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/dto"
 	"go.uber.org/zap"
 )
 
 type UsersServiceInterface interface {
-	CreateUser(ctx context.Context, userReq *dto.UserReq) (string, error)
+	CreateUser(ctx context.Context, userReq *dto.UserCreateRequest) (string, error)
 	GetUser(ctx context.Context, id string) (*dto.UserResp, error)
 	ListUsers(ctx context.Context) ([]*dto.UserResp, error)
-	UpdateUser(ctx context.Context, id string, userReq *dto.UserReq) error
+	UpdateUser(ctx context.Context, id string, userReq *dto.UserUpdateRequest) error
 	DeleteUser(ctx context.Context, id string) error
 }
 
 type Handler struct {
 	usersService UsersServiceInterface
 	log          *zap.SugaredLogger
+	validate     *validator.Validate
 }
 
 func NewHandler(usersService UsersServiceInterface, logger *zap.SugaredLogger) *Handler {
 	return &Handler{
 		usersService: usersService,
 		log:          logger,
+		validate:     validator.New(),
 	}
 }
 

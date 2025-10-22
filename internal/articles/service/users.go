@@ -30,7 +30,7 @@ func NewUsersService(usersRepo UsersRepository, logger *zap.SugaredLogger) *User
 	}
 }
 
-func (s *UsersService) CreateUser(ctx context.Context, userReq *dto.UserReq) (string, error) {
+func (s *UsersService) CreateUser(ctx context.Context, userReq *dto.UserCreateRequest) (string, error) {
 	const op = "users.CreateUser"
 	s.log.Info("registering user")
 
@@ -104,7 +104,7 @@ func (s *UsersService) ListUsers(ctx context.Context) ([]*dto.UserResp, error) {
 	return usersResp, nil
 }
 
-func (s *UsersService) UpdateUser(ctx context.Context, id string, userReq *dto.UserReq) error {
+func (s *UsersService) UpdateUser(ctx context.Context, id string, userReq *dto.UserUpdateRequest) error {
 	const op = "users.UpdateUser"
 	s.log.Infow("updating user", "userID", id)
 
@@ -118,14 +118,14 @@ func (s *UsersService) UpdateUser(ctx context.Context, id string, userReq *dto.U
 		return fmt.Errorf("%s: %w", op, models.ErrUserNotFound)
 	}
 
-	if userReq.Username != "" {
-		existingUser.Username = userReq.Username
+	if userReq.Username != nil {
+		existingUser.Username = *userReq.Username
 	}
-	if userReq.Email != "" {
-		existingUser.Email = userReq.Email
+	if userReq.Email != nil {
+		existingUser.Email = *userReq.Email
 	}
-	if userReq.Password != "" {
-		passHash, err := bcrypt.GenerateFromPassword([]byte(userReq.Password), bcrypt.DefaultCost)
+	if userReq.Password != nil {
+		passHash, err := bcrypt.GenerateFromPassword([]byte(*userReq.Password), bcrypt.DefaultCost)
 		if err != nil {
 			s.log.Errorw("generating password hash", "error", err)
 			return fmt.Errorf("%s: %w", op, err)

@@ -50,9 +50,8 @@ func (u *UsersRepository) GetUserByID(ctx context.Context, id string) (*models.U
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.ErrUserNotFound
-		} else {
-			return nil, fmt.Errorf("get user %v: %w", id, err)
 		}
+		return nil, fmt.Errorf("get user %v: %w", id, err)
 	}
 	return &user, nil
 }
