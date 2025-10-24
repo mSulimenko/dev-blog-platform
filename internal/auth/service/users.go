@@ -36,7 +36,7 @@ func NewUsersService(usersRepo UsersRepository, logger *zap.SugaredLogger, secre
 	}
 }
 
-func (s *UsersService) CreateUser(ctx context.Context, userReq *dto.UserCreateRequest) (string, error) {
+func (s *UsersService) Register(ctx context.Context, userReq *dto.UserCreateRequest) (string, error) {
 	const op = "users.CreateUser"
 	s.log.Info("registering user")
 

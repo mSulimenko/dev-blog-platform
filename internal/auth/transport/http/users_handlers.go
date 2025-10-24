@@ -23,7 +23,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := h.usersService.CreateUser(r.Context(), &req)
+	userID, err := h.usersService.Register(r.Context(), &req)
 	if err != nil {
 		h.log.Errorw("Failed to create user", "error", err, "request", req)
 		h.sendError(w, http.StatusInternalServerError, ErrCodeInternal, "Internal server error")

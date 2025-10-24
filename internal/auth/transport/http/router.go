@@ -10,7 +10,7 @@ import (
 )
 
 type UsersServiceInterface interface {
-	CreateUser(ctx context.Context, userReq *dto.UserCreateRequest) (string, error)
+	Register(ctx context.Context, userReq *dto.UserCreateRequest) (string, error)
 	GetUser(ctx context.Context, id string) (*dto.UserResp, error)
 	Login(ctx context.Context, req *dto.LoginRequest) (*dto.LoginResponse, error)
 	ListUsers(ctx context.Context) ([]*dto.UserResp, error)
