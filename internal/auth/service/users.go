@@ -88,7 +88,6 @@ func (s *UsersService) GetUser(ctx context.Context, id string) (*dto.UserResp, e
 	return userResp, nil
 }
 
-// Login todo: разобраться с возвращаемым значением
 func (s *UsersService) Login(ctx context.Context, req *dto.LoginRequest) (*dto.LoginResponse, error) {
 	const op = "users.GetUser"
 	s.log.Infow("getting user", "email", req.Email)
