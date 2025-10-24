@@ -15,6 +15,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		h.sendError(w, http.StatusBadRequest, ErrCodeInvalidJSON, "Invalid JSON format")
 		return
 	}
+	defer r.Body.Close()
 
 	if err := h.validate.Struct(req); err != nil {
 		h.log.Errorw("Validation failed", "error", err)
@@ -34,6 +35,31 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"id": userID,
 	})
+}
+
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	var req dto.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.log.Errorw("unable to decode", "error", err, "request", req)
+		h.sendError(w, http.StatusBadRequest, ErrCodeInvalidJSON, "Invalid JSON format")
+	}
+	defer r.Body.Close()
+
+	if err := h.validate.Struct(req); err != nil {
+		h.log.Errorw("Validation failed", "error", err)
+		h.sendError(w, http.StatusBadRequest, ErrCodeValidation, "Invalid input data")
+		return
+	}
+
+	resp, err := h.usersService.Login(r.Context(), &req)
+	if err != nil {
+		h.log.Errorw("Login failed", "error", err)
+		h.sendError(w, http.StatusInternalServerError, ErrCodeInternal, "Server error")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {

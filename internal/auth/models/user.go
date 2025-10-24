@@ -8,5 +8,6 @@ type User struct {
 	Email             string
 	PasswordHash      string
 	VerificationToken string
+	Role              string
 	CreatedAt         time.Time
 }

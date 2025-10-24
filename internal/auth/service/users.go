@@ -8,11 +8,13 @@ import (
 	"github.com/mSulimenko/dev-blog-platform/internal/auth/models"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 type UsersRepository interface {
 	CreateUser(ctx context.Context, user *models.User) error
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	ListUsers(ctx context.Context) ([]*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User) error
 	DeleteUser(ctx context.Context, id string) error
@@ -21,12 +23,16 @@ type UsersRepository interface {
 type UsersService struct {
 	usersRepo UsersRepository
 	log       *zap.SugaredLogger
+	secret    string
+	secretDur time.Duration
 }
 
-func NewUsersService(usersRepo UsersRepository, logger *zap.SugaredLogger) *UsersService {
+func NewUsersService(usersRepo UsersRepository, logger *zap.SugaredLogger, secret string, dur time.Duration) *UsersService {
 	return &UsersService{
 		usersRepo: usersRepo,
 		log:       logger,
+		secret:    secret,
+		secretDur: dur,
 	}
 }
 
@@ -75,10 +81,42 @@ func (s *UsersService) GetUser(ctx context.Context, id string) (*dto.UserResp, e
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
+		Role:      user.Role,
 		CreatedAt: user.CreatedAt,
 	}
 
 	return userResp, nil
+}
+
+// Login todo: разобраться с возвращаемым значением
+func (s *UsersService) Login(ctx context.Context, req *dto.LoginRequest) (*dto.LoginResponse, error) {
+	const op = "users.GetUser"
+	s.log.Infow("getting user", "email", req.Email)
+
+	user, err := s.usersRepo.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		s.log.Errorw("failed to get user", "email", req.Email, "error", err)
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		s.log.Infow("invalid credentials", "error", err)
+		return nil, fmt.Errorf("%s: invalid credentials", op)
+	}
+
+	token, err := s.newToken(user)
+	if err != nil {
+		s.log.Errorw("failed to generate token", "email", req.Email, "error", err)
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	resp := &dto.LoginResponse{
+		Token:     token,
+		Type:      "Bearer",
+		ExpiresIn: int64(s.secretDur.Seconds()),
+	}
+
+	return resp, nil
 }
 
 func (s *UsersService) ListUsers(ctx context.Context) ([]*dto.UserResp, error) {
@@ -97,6 +135,7 @@ func (s *UsersService) ListUsers(ctx context.Context) ([]*dto.UserResp, error) {
 			ID:        user.ID,
 			Username:  user.Username,
 			Email:     user.Email,
+			Role:      user.Role,
 			CreatedAt: user.CreatedAt,
 		})
 	}
@@ -131,6 +170,9 @@ func (s *UsersService) UpdateUser(ctx context.Context, id string, userReq *dto.U
 			return fmt.Errorf("%s: %w", op, err)
 		}
 		existingUser.PasswordHash = string(passHash)
+	}
+	if userReq.Role != nil {
+		existingUser.Role = *userReq.Role
 	}
 
 	err = s.usersRepo.UpdateUser(ctx, existingUser)

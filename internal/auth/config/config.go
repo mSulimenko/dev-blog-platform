@@ -13,8 +13,9 @@ const (
 
 type Config struct {
 	Env  string `yaml:"env" env:"ENV" env-default:"local"`
-	HTTP HTTP   `yaml:"http"`
-	DB   DB     `yaml:"db"`
+	HTTP HTTP   `yaml:"http" env:"env-required"`
+	DB   DB     `yaml:"db" env:"env-required"`
+	Auth Auth   `yaml:"auth" env:"env-required"`
 }
 
 type HTTP struct {
@@ -31,6 +32,11 @@ type DB struct {
 	MaxOpenConns  int    `yaml:"max_open_conns" env:"DB_MAX_CONNS"`
 	MaxIdleConns  int    `yaml:"max_idle_conns"`
 	MaxIdleTime   string `yaml:"max_idle_time"`
+}
+
+type Auth struct {
+	AccessSecret   string        `yaml:"access_secret" env:"env-required"`
+	AccessDuration time.Duration `yaml:"access_duration" envDefault:"15m"`
 }
 
 func Load() *Config {

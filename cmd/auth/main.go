@@ -41,7 +41,7 @@ func main() {
 	usersRepo := repository.NewUsersRepository(dbpool)
 
 	// services
-	userService := service2.NewUsersService(usersRepo, log)
+	userService := service2.NewUsersService(usersRepo, log, cfg.Auth.AccessSecret, cfg.Auth.AccessDuration)
 
 	// router
 	handler := httphandler.NewHandler(userService, log)

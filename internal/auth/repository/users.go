@@ -39,13 +39,14 @@ func (u *UsersRepository) CreateUser(ctx context.Context, user *models.User) err
 func (u *UsersRepository) GetUserByID(ctx context.Context, id string) (*models.User, error) {
 	var user models.User
 	q := `
-        SELECT id, email, username, password_hash, created_at 
+        SELECT id, email, username, password_hash, role, created_at 
         FROM users WHERE id = $1`
 	err := u.db.QueryRow(ctx, q, id).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Username,
 		&user.PasswordHash,
+		&user.Role,
 		&user.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -56,9 +57,30 @@ func (u *UsersRepository) GetUserByID(ctx context.Context, id string) (*models.U
 	return &user, nil
 }
 
+func (u *UsersRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user models.User
+	q := `
+        SELECT id, email, username, password_hash, role, created_at 
+        FROM users WHERE email = $1`
+	err := u.db.QueryRow(ctx, q, email).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Username,
+		&user.PasswordHash,
+		&user.Role,
+		&user.CreatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, models.ErrUserNotFound
+		}
+		return nil, fmt.Errorf("get user %v: %w", email, err)
+	}
+	return &user, nil
+}
+
 func (u *UsersRepository) ListUsers(ctx context.Context) ([]*models.User, error) {
 	var users []*models.User
-	q := `SELECT id, email, username, password_hash, created_at 
+	q := `SELECT id, email, username, password_hash, role, created_at 
         FROM users 
 `
 	rows, err := u.db.Query(ctx, q)
@@ -74,6 +96,7 @@ func (u *UsersRepository) ListUsers(ctx context.Context) ([]*models.User, error)
 			&user.Email,
 			&user.Username,
 			&user.PasswordHash,
+			&user.Role,
 			&user.CreatedAt,
 		)
 		if err != nil {
@@ -98,10 +121,11 @@ func (u *UsersRepository) UpdateUser(ctx context.Context, user *models.User) err
 	q := `UPDATE users SET 
                  email = $1, 
                  username = $2, 
-                 password_hash = $3
-             WHERE id = $4`
+                 password_hash = $3,
+                 role = $4
+             WHERE id = $5`
 
-	_, err := u.db.Exec(ctx, q, user.Email, user.Username, user.PasswordHash, user.ID)
+	_, err := u.db.Exec(ctx, q, user.Email, user.Username, user.PasswordHash, user.Role, user.ID)
 	if err != nil {
 		return fmt.Errorf("update user %s: %w", user.ID, err)
 	}

@@ -12,6 +12,7 @@ import (
 type UsersServiceInterface interface {
 	CreateUser(ctx context.Context, userReq *dto.UserCreateRequest) (string, error)
 	GetUser(ctx context.Context, id string) (*dto.UserResp, error)
+	Login(ctx context.Context, req *dto.LoginRequest) (*dto.LoginResponse, error)
 	ListUsers(ctx context.Context) ([]*dto.UserResp, error)
 	UpdateUser(ctx context.Context, id string, userReq *dto.UserUpdateRequest) error
 	DeleteUser(ctx context.Context, id string) error
@@ -42,7 +43,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", h.Register) // POST /api/v1/auth/register
-			// r.Post("/login", h.Login)    // POST /api/v1/auth/login
+			r.Post("/login", h.Login)       // POST /api/v1/auth/login
 			// r.Post("/refresh", h.Refresh)    // POST /api/v1/auth/refresh
 
 		})
