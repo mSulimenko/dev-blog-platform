@@ -2,18 +2,19 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/config"
-	"github.com/mSulimenko/dev-blog-platform/internal/articles/database"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/repository"
 	service2 "github.com/mSulimenko/dev-blog-platform/internal/articles/service"
 	httphandler "github.com/mSulimenko/dev-blog-platform/internal/articles/transport/http"
+	"github.com/mSulimenko/dev-blog-platform/internal/shared/database"
 	"github.com/mSulimenko/dev-blog-platform/internal/shared/logger"
 	"net/http"
 	"os"
 )
 
 func main() {
-
+	fmt.Println("Starting articles")
 	cfg := config.Load()
 
 	log := logger.New(cfg.Env)
@@ -56,7 +57,7 @@ func main() {
 
 	log.Infof("Starting server on %s:%s", cfg.HTTP.Host, cfg.HTTP.Port)
 
-	if err := srv.ListenAndServe(); err != nil {
+	if err = srv.ListenAndServe(); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
