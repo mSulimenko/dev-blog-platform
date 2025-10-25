@@ -1,0 +1,15 @@
+env: local
+db:
+  migrations_dir: "migrations"
+  dsn: "postgres://user:password@localhost:5432/dev_blog?sslmode=disable"
+http:
+  host: "localhost"
+  port: "8081"
+  read_timeout: "15s"
+  write_timeout: "15s"
+  idle_timeout: "60s"
+auth:
+  access_secret: "your-super-secret-key-min-32-chars"
+  access_duration: "15m"
+grpc:
+  port: "50051"

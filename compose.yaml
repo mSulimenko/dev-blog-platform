@@ -14,12 +14,27 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  auth:
+    build:
+      context: .
+      dockerfile: cmd/auth/Dockerfile
+    environment:
+      - AUTH_CONFIG_PATH=./configs/auth.yaml
+      - DB_DSN=postgres://user:password@postgres:5432/dev_blog?sslmode=disable
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
   articles:
     build:
       context: .
       dockerfile: cmd/articles/Dockerfile
     environment:
       - ARTICLES_CONFIG_PATH=./configs/articles.yaml
+      - DB_DSN=postgres://user:password@postgres:5432/dev_blog?sslmode=disable
+
     depends_on:
       postgres:
         condition: service_healthy
