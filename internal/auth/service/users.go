@@ -27,7 +27,12 @@ type UsersService struct {
 	secretDur time.Duration
 }
 
-func NewUsersService(usersRepo UsersRepository, logger *zap.SugaredLogger, secret string, dur time.Duration) *UsersService {
+func NewUsersService(
+	usersRepo UsersRepository,
+	logger *zap.SugaredLogger,
+	secret string,
+	dur time.Duration,
+) *UsersService {
 	return &UsersService{
 		usersRepo: usersRepo,
 		log:       logger,
@@ -58,6 +63,8 @@ func (s *UsersService) Register(ctx context.Context, userReq *dto.UserCreateRequ
 
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
+
+	// Тут потом отправляем событие в кафку
 
 	return user.ID, nil
 
