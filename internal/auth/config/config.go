@@ -16,6 +16,7 @@ type Config struct {
 	HTTP HTTP   `yaml:"http" env:"env-required"`
 	DB   DB     `yaml:"db" env:"env-required"`
 	Auth Auth   `yaml:"auth" env:"env-required"`
+	GRPC GRPC   `yaml:"GRPC"`
 }
 
 type HTTP struct {
@@ -37,6 +38,10 @@ type DB struct {
 type Auth struct {
 	AccessSecret   string        `yaml:"access_secret" env:"env-required"`
 	AccessDuration time.Duration `yaml:"access_duration" envDefault:"15m"`
+}
+
+type GRPC struct {
+	Port string `yaml:"port" env-default:"50051"`
 }
 
 func Load() *Config {

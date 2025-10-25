@@ -8,4 +8,6 @@ var (
 	ErrInvalidUserID      = errors.New("invalid user id")
 	ErrInvalidPassword    = errors.New("invalid password")
 	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrInvalidToken       = errors.New("invalid token")
+	ErrTokenExpired       = errors.New("token expired")
 )
