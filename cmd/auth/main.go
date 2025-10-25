@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/mSulimenko/dev-blog-platform/internal/auth/config"
 	"github.com/mSulimenko/dev-blog-platform/internal/auth/repository"
-	service2 "github.com/mSulimenko/dev-blog-platform/internal/auth/service"
-	grpc2 "github.com/mSulimenko/dev-blog-platform/internal/auth/transport/grpc"
+	authService "github.com/mSulimenko/dev-blog-platform/internal/auth/service"
+	authGrpc "github.com/mSulimenko/dev-blog-platform/internal/auth/transport/grpc"
 	httphandler "github.com/mSulimenko/dev-blog-platform/internal/auth/transport/http"
 	"github.com/mSulimenko/dev-blog-platform/internal/shared/database"
 	"github.com/mSulimenko/dev-blog-platform/internal/shared/logger"
@@ -44,7 +44,7 @@ func main() {
 	usersRepo := repository.NewUsersRepository(dbpool)
 
 	// services
-	userService := service2.NewUsersService(usersRepo, log, cfg.Auth.AccessSecret, cfg.Auth.AccessDuration)
+	userService := authService.NewUsersService(usersRepo, log, cfg.Auth.AccessSecret, cfg.Auth.AccessDuration)
 
 	// router
 	handler := httphandler.NewHandler(userService, log)
@@ -64,8 +64,8 @@ func main() {
 		log.Fatalf("tcp connection failed: %w", err)
 	}
 	gRPCServer := grpc.NewServer()
-	authService := service2.NewAuthService(usersRepo, log, cfg.Auth.AccessSecret)
-	grpc2.Register(gRPCServer, authService)
+	authServ := authService.NewAuthService(usersRepo, log, cfg.Auth.AccessSecret)
+	authGrpc.Register(gRPCServer, authServ)
 	go func() {
 		log.Infof("Starting grpc server on :%s", cfg.GRPC.Port)
 		gRPCServer.Serve(conn)

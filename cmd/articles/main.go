@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/config"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/repository"
-	service2 "github.com/mSulimenko/dev-blog-platform/internal/articles/service"
+	authService "github.com/mSulimenko/dev-blog-platform/internal/articles/service"
 	httphandler "github.com/mSulimenko/dev-blog-platform/internal/articles/transport/http"
 	"github.com/mSulimenko/dev-blog-platform/internal/shared/database"
 	"github.com/mSulimenko/dev-blog-platform/internal/shared/logger"
@@ -41,7 +41,7 @@ func main() {
 	usersRepo := repository.NewUsersRepository(dbpool)
 
 	// services
-	userService := service2.NewUsersService(usersRepo, log)
+	userService := authService.NewUsersService(usersRepo, log)
 
 	// router
 	handler := httphandler.NewHandler(userService, log)
