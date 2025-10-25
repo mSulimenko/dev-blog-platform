@@ -33,4 +33,5 @@ func main() {
 	}
 	log.Info("Migrations applied successfully")
 
+	// service
 }
