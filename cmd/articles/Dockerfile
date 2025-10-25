@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o articles-service ./cmd/articles
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -a -installsuffix cgo -o articles-service ./cmd/articles
 
 EXPOSE 8082
 
