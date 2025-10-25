@@ -18,7 +18,7 @@ const (
 	ErrCodeInvalidJSON = "INVALID_JSON"
 )
 
-func (h *Handler) sendError(w http.ResponseWriter, status int, code, message string) {
+func sendError(w http.ResponseWriter, status int, code, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(ErrorResponse{
