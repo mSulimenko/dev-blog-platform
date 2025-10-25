@@ -12,10 +12,10 @@ import (
 )
 
 type ArticlesRepository struct {
-	db *pgxpool.Conn
+	db *pgxpool.Pool
 }
 
-func New(db *pgxpool.Conn) *ArticlesRepository {
+func New(db *pgxpool.Pool) *ArticlesRepository {
 	return &ArticlesRepository{
 		db: db,
 	}
