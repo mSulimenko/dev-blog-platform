@@ -15,11 +15,12 @@ type Config struct {
 	Env  string `yaml:"env" env:"ENV" env-default:"local"`
 	HTTP HTTP   `yaml:"http"`
 	DB   DB     `yaml:"db"`
+	GRPC GRPC   `yaml:"grpc"`
 }
 
 type HTTP struct {
-	Host         string        `yaml:"host" env:"HTTP_HOST" env-default:"localhost"`
-	Port         string        `yaml:"port" env:"HTTP_PORT" env-default:"8080"`
+	Host         string        `yaml:"host" env:"HTTP_HOST"`
+	Port         string        `yaml:"port" env:"HTTP_PORT"`
 	ReadTimeout  time.Duration `yaml:"read_timeout"`
 	WriteTimeout time.Duration `yaml:"write_timeout"`
 	IdleTimeout  time.Duration `yaml:"idle_timeout"`
@@ -31,6 +32,12 @@ type DB struct {
 	MaxOpenConns  int    `yaml:"max_open_conns" env:"DB_MAX_CONNS"`
 	MaxIdleConns  int    `yaml:"max_idle_conns"`
 	MaxIdleTime   string `yaml:"max_idle_time"`
+}
+
+type GRPC struct {
+	Addr         string        `yaml:"addr" env:"GRPC_ADDR"`
+	MaxRetries   uint          `yaml:"max_retries"`
+	RetryTimeout time.Duration `yaml:"retry_timeout"`
 }
 
 func Load() *Config {
