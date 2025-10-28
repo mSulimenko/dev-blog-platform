@@ -17,7 +17,7 @@ import (
 func main() {
 	fmt.Println("Starting articles")
 	cfg := config.Load()
-	fmt.Println(cfg)
+
 	log := logger.New(cfg.Env)
 	defer log.Sync()
 
