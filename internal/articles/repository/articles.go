@@ -15,7 +15,7 @@ type ArticlesRepository struct {
 	db *pgxpool.Pool
 }
 
-func New(db *pgxpool.Pool) *ArticlesRepository {
+func NewArticlesRepository(db *pgxpool.Pool) *ArticlesRepository {
 	return &ArticlesRepository{
 		db: db,
 	}
@@ -88,7 +88,7 @@ func (a *ArticlesRepository) buildUpdateQuery(id string, updates models.UpdateAr
 	return query, args
 }
 
-func (a *ArticlesRepository) GetArticle(ctx context.Context, id string) (*models.Article, error) {
+func (a *ArticlesRepository) GetArticleById(ctx context.Context, id string) (*models.Article, error) {
 	var article models.Article
 	q := `SELECT id, title, content, author_id, status, created_at, updated_at
 			FROM articles

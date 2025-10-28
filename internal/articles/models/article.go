@@ -15,7 +15,7 @@ type Article struct {
 type ListArticleParams struct {
 	AuthorId *string
 	Status   *string
-	Offset   string
+	Offset   int
 	Limit    int
 }
 
