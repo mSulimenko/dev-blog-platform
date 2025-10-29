@@ -33,7 +33,7 @@ func NewAuthService(userProvider UserProvider, logger *zap.SugaredLogger, secret
 }
 
 func (a *AuthService) Auth(ctx context.Context, tokenString string) (userId, role string, err error) {
-	const op = "users.CreateUser"
+	const op = "auth.Auth"
 
 	if tokenString == "" {
 		return "", roleUnverified, nil
