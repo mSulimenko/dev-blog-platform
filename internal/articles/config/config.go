@@ -19,11 +19,12 @@ type Config struct {
 }
 
 type HTTP struct {
-	Host         string        `yaml:"host" env:"HTTP_HOST"`
-	Port         string        `yaml:"port" env:"HTTP_PORT"`
-	ReadTimeout  time.Duration `yaml:"read_timeout"`
-	WriteTimeout time.Duration `yaml:"write_timeout"`
-	IdleTimeout  time.Duration `yaml:"idle_timeout"`
+	Host            string        `yaml:"host" env:"HTTP_HOST"`
+	Port            string        `yaml:"port" env:"HTTP_PORT"`
+	ReadTimeout     time.Duration `yaml:"read_timeout"`
+	WriteTimeout    time.Duration `yaml:"write_timeout"`
+	IdleTimeout     time.Duration `yaml:"idle_timeout"`
+	ShutdownTimeout time.Duration `yaml:"shutdown_timeout"`
 }
 
 type DB struct {

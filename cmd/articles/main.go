@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/config"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/repository"
@@ -12,6 +13,8 @@ import (
 	"github.com/mSulimenko/dev-blog-platform/internal/shared/logger"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -68,9 +71,36 @@ func main() {
 		IdleTimeout:  cfg.HTTP.IdleTimeout,
 	}
 
-	log.Infof("Starting server on %s:%s", cfg.HTTP.Host, cfg.HTTP.Port)
-	if err = srv.ListenAndServe(); err != nil {
-		log.Fatalf("Server failed: %w", err)
-	}
+	serverErrors := make(chan error, 1)
+	go func() {
+		log.Infof("Starting server on %s:%s", cfg.HTTP.Host, cfg.HTTP.Port)
+		if err = srv.ListenAndServe(); err != nil && !errors.Is(http.ErrServerClosed, err) {
+			log.Error("Server failed: %w", err)
+			serverErrors <- err
+		}
+	}()
 
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, syscall.SIGTERM, syscall.SIGINT)
+
+	select {
+	case err = <-serverErrors:
+		log.Fatalf("Server failed: %v", err)
+
+	case <-shutdown:
+		log.Info("Starting graceful shutdown")
+
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.HTTP.ShutdownTimeout)
+		defer cancel()
+
+		if err = srv.Shutdown(ctx); err != nil {
+			log.Errorf("Graceful shutdown failed: %v", err)
+
+			if err = srv.Close(); err != nil {
+				log.Errorf("Forced shutdown failed: %v", err)
+			}
+		}
+
+		log.Info("Server stopped gracefully")
+	}
 }

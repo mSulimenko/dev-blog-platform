@@ -1,9 +1,8 @@
 package httphandler
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
+	getctx "github.com/mSulimenko/dev-blog-platform/internal/shared/context"
 	"net/http"
 	"strconv"
 
@@ -26,7 +25,7 @@ func (h *Handler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := h.getUserIDFromContext(r.Context())
+	userID, err := getctx.GetUserIDFromContext(r.Context())
 	if err != nil {
 		sendError(w, http.StatusUnauthorized, ErrCodeValidation, "Authentication required")
 		return
@@ -134,7 +133,7 @@ func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		sendError(w, http.StatusBadRequest, ErrCodeValidation, "Invalid request")
 		return
 	}
-	userID, err := h.getUserIDFromContext(r.Context())
+	userID, err := getctx.GetUserIDFromContext(r.Context())
 	if err != nil {
 		sendError(w, http.StatusUnauthorized, ErrCodeValidation, "Authentication required")
 		return
@@ -157,7 +156,7 @@ func (h *Handler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 		sendError(w, http.StatusBadRequest, ErrCodeValidation, "id required")
 		return
 	}
-	userID, err := h.getUserIDFromContext(r.Context())
+	userID, err := getctx.GetUserIDFromContext(r.Context())
 	if err != nil {
 		sendError(w, http.StatusUnauthorized, ErrCodeValidation, "Authentication required")
 		return
@@ -170,20 +169,4 @@ func (h *Handler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func (h *Handler) getUserIDFromContext(ctx context.Context) (string, error) {
-	userID, ok := ctx.Value("user_id").(string)
-	if !ok || userID == "" {
-		return "", fmt.Errorf("user ID not found in context")
-	}
-	return userID, nil
-}
-
-func (h *Handler) getUserRoleFromContext(ctx context.Context) (string, error) {
-	role, ok := ctx.Value("user_role").(string)
-	if !ok || role == "" {
-		return "", fmt.Errorf("user role not found in context")
-	}
-	return role, nil
 }
