@@ -11,11 +11,11 @@ import (
 )
 
 type ArticlesServiceInterface interface {
-	CreateArticle(ctx context.Context, req dto.CreateReq) (*dto.ArticleResp, error)
-	GetArticle(ctx context.Context, id string) (*dto.ArticleResp, error)
+	CreateArticle(ctx context.Context, req dto.CreateRequest) (*dto.ArticleResponse, error)
+	GetArticle(ctx context.Context, id string) (*dto.ArticleResponse, error)
 	DeleteArticle(ctx context.Context, articleId string, userID string) error
-	ListArticles(ctx context.Context, req dto.ListReq) (*dto.ListResp, error)
-	UpdateArticle(ctx context.Context, articleId string, req dto.UpdateReq, userID string) (*dto.ArticleResp, error)
+	ListArticles(ctx context.Context, req dto.ListRequest) (*dto.ListResponse, error)
+	UpdateArticle(ctx context.Context, articleId string, req dto.UpdateRequest, userID string) (*dto.ArticleResponse, error)
 }
 
 type Handler struct {

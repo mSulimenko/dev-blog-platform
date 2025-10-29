@@ -28,7 +28,7 @@ func NewArticlesService(log *zap.SugaredLogger, repo ArticlesRepo) *ArticlesServ
 	}
 }
 
-func (a *ArticlesService) CreateArticle(ctx context.Context, req dto.CreateReq) (*dto.ArticleResp, error) {
+func (a *ArticlesService) CreateArticle(ctx context.Context, req dto.CreateRequest) (*dto.ArticleResponse, error) {
 	params := models.CreateArticleParams{
 		Title:    req.Title,
 		Content:  req.Content,
@@ -44,7 +44,7 @@ func (a *ArticlesService) CreateArticle(ctx context.Context, req dto.CreateReq) 
 	return &resp, nil
 }
 
-func (a *ArticlesService) GetArticle(ctx context.Context, id string) (*dto.ArticleResp, error) {
+func (a *ArticlesService) GetArticle(ctx context.Context, id string) (*dto.ArticleResponse, error) {
 	article, err := a.repo.GetArticleById(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed GetArticleById: %w", err)
@@ -71,7 +71,7 @@ func (a *ArticlesService) DeleteArticle(ctx context.Context, articleId string, u
 	return nil
 }
 
-func (a *ArticlesService) ListArticles(ctx context.Context, req dto.ListReq) (*dto.ListResp, error) {
+func (a *ArticlesService) ListArticles(ctx context.Context, req dto.ListRequest) (*dto.ListResponse, error) {
 
 	params := models.ListArticleParams{
 		AuthorId: req.AuthorID,
@@ -91,9 +91,9 @@ func (a *ArticlesService) ListArticles(ctx context.Context, req dto.ListReq) (*d
 
 func (a *ArticlesService) UpdateArticle(ctx context.Context,
 	articleId string,
-	req dto.UpdateReq,
+	req dto.UpdateRequest,
 	userID string,
-) (*dto.ArticleResp, error) {
+) (*dto.ArticleResponse, error) {
 	article, err := a.repo.GetArticleById(ctx, articleId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get article: %w", err)

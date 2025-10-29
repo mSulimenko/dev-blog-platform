@@ -12,7 +12,7 @@ import (
 )
 
 func (h *Handler) CreateArticle(w http.ResponseWriter, r *http.Request) {
-	var req dto.CreateReq
+	var req dto.CreateRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.log.Errorw("Failed to decode request body", "error", err)
@@ -68,7 +68,7 @@ func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ListArticles(w http.ResponseWriter, r *http.Request) {
-	var req dto.ListReq
+	var req dto.ListRequest
 	query := r.URL.Query()
 
 	if authorID := query.Get("author_id"); authorID != "" {
@@ -117,7 +117,7 @@ func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req dto.UpdateReq
+	var req dto.UpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.log.Errorw("Failed to decode request body", "error", err)
 		sendError(w, http.StatusBadRequest, ErrCodeInvalidJSON, "Invalid JSON format")
