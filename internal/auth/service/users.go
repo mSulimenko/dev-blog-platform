@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/mSulimenko/dev-blog-platform/internal/auth/dto"
@@ -18,27 +20,37 @@ type UsersRepository interface {
 	ListUsers(ctx context.Context) ([]*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User) error
 	DeleteUser(ctx context.Context, id string) error
+	FindByVerificationToken(ctx context.Context, token string) (*models.User, error)
 }
 
 type UsersService struct {
-	usersRepo UsersRepository
-	log       *zap.SugaredLogger
-	secret    string
-	secretDur time.Duration
+	usersRepo  UsersRepository
+	dispatcher EventDispatcher
+	log        *zap.SugaredLogger
+	secret     string
+	secretDur  time.Duration
 }
 
 func NewUsersService(
 	usersRepo UsersRepository,
+	dispatcher EventDispatcher,
 	logger *zap.SugaredLogger,
 	secret string,
 	dur time.Duration,
 ) *UsersService {
 	return &UsersService{
-		usersRepo: usersRepo,
-		log:       logger,
-		secret:    secret,
-		secretDur: dur,
+		usersRepo:  usersRepo,
+		dispatcher: dispatcher,
+		log:        logger,
+		secret:     secret,
+		secretDur:  dur,
 	}
+}
+
+func generateToken() string {
+	bytes := make([]byte, 32)
+	rand.Read(bytes)
+	return hex.EncodeToString(bytes)
 }
 
 func (s *UsersService) Register(ctx context.Context, userReq *dto.UserCreateRequest) (string, error) {
@@ -51,23 +63,41 @@ func (s *UsersService) Register(ctx context.Context, userReq *dto.UserCreateRequ
 
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
+
+	verificationToken := generateToken()
+
 	user := &models.User{
-		Username:     userReq.Username,
-		Email:        userReq.Email,
-		PasswordHash: string(passHash),
+		Username:          userReq.Username,
+		Email:             userReq.Email,
+		PasswordHash:      string(passHash),
+		VerificationToken: verificationToken,
 	}
 	err = s.usersRepo.CreateUser(ctx, user)
 
 	if err != nil {
-		s.log.Error("failed to create user", err)
-
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	// Тут потом отправляем событие в кафку
+	err = s.dispatcher.UserRegistered(ctx, user.Email, user.VerificationToken, user.Username)
+	if err != nil {
+		s.log.Errorw("user created but email not sent", "UserId", user.ID, "error", err)
+		return user.ID, fmt.Errorf("user created but email not sent: %w", err)
+	}
 
 	return user.ID, nil
 
+}
+
+func (s *UsersService) VerifyEmail(ctx context.Context, token string) error {
+	user, err := s.usersRepo.FindByVerificationToken(ctx, token)
+	if err != nil {
+		return fmt.Errorf("failed to find user with token %s: %w", token, err)
+	}
+
+	user.Role = "user"
+	user.VerificationToken = ""
+
+	return s.usersRepo.UpdateUser(ctx, user)
 }
 
 func (s *UsersService) GetUser(ctx context.Context, id string) (*dto.UserResp, error) {

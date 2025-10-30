@@ -120,9 +120,68 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	err := h.usersService.DeleteUser(r.Context(), id)
 	if err != nil {
 		h.log.Errorw("Failed to delete user", "id", id, "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.sendError(w, http.StatusInternalServerError, ErrCodeInternal, "Internal server error")
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	if token == "" {
+		h.sendVerificationHTML(w, false, "Verification token is required")
+		return
+	}
+
+	err := h.usersService.VerifyEmail(r.Context(), token)
+	if err != nil {
+		h.log.Errorw("failed to verify email", "token", token, "error", err)
+		h.sendVerificationHTML(w, false, "Invalid or expired verification token")
+		return
+	}
+
+	h.sendVerificationHTML(w, true, "Email successfully verified!")
+}
+
+func (h *Handler) sendVerificationHTML(w http.ResponseWriter, success bool, message string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	var html string
+	if success {
+		html = `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<title>Email Verified</title>
+			<style>
+				body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+				.success { color: #22c55e; }
+			</style>
+		</head>
+		<body>
+			<h1 class="success">✅ Email Verified!</h1>
+		</body>
+		</html>`
+	} else {
+		html = `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<title>Verification Failed</title>
+			<style>
+				body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+				.error { color: #ef4444; }
+			</style>
+		</head>
+		<body>
+			<h1 class="error">❌ Verification Failed</h1>
+			<p>` + message + `</p>
+			<p>Please try registering again or contact support.</p>
+		</body>
+		</html>`
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(html))
 }

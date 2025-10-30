@@ -16,6 +16,7 @@ type UsersServiceInterface interface {
 	ListUsers(ctx context.Context) ([]*dto.UserResp, error)
 	UpdateUser(ctx context.Context, id string, userReq *dto.UserUpdateRequest) error
 	DeleteUser(ctx context.Context, id string) error
+	VerifyEmail(ctx context.Context, token string) error
 }
 
 type Handler struct {
@@ -42,8 +43,10 @@ func (h *Handler) InitRouter() *chi.Mux {
 
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/register", h.Register) // POST /api/v1/auth/register
-			r.Post("/login", h.Login)       // POST /api/v1/auth/login
+			r.Post("/register", h.Register)         // POST /api/v1/auth/register
+			r.Post("/login", h.Login)               // POST /api/v1/auth/login
+			r.Get("/verify/{token}", h.VerifyEmail) // GET /api/v1/auth/verify/{id}
+
 			// r.Post("/refresh", h.Refresh)    // POST /api/v1/auth/refresh
 
 		})
