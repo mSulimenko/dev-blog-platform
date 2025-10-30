@@ -8,6 +8,7 @@ import (
 	authService "github.com/mSulimenko/dev-blog-platform/internal/auth/service"
 	authGrpc "github.com/mSulimenko/dev-blog-platform/internal/auth/transport/grpc"
 	httphandler "github.com/mSulimenko/dev-blog-platform/internal/auth/transport/http"
+	"github.com/mSulimenko/dev-blog-platform/internal/auth/transport/kafka"
 	"github.com/mSulimenko/dev-blog-platform/internal/shared/database"
 	"github.com/mSulimenko/dev-blog-platform/internal/shared/logger"
 	"google.golang.org/grpc"
@@ -43,8 +44,22 @@ func main() {
 	// repo
 	usersRepo := repository.NewUsersRepository(dbpool)
 
+	// Инициализируем Kafka Dispatcher
+	kafkaDispatcher, err := kafka.NewKafkaDispatcher(cfg.Kafka.Brokers, log)
+	if err != nil {
+		log.Error("kafka initialization failed: ", err)
+		os.Exit(1)
+	}
+	defer kafkaDispatcher.Close()
+
 	// services
-	userService := authService.NewUsersService(usersRepo, log, cfg.Auth.AccessSecret, cfg.Auth.AccessDuration)
+	userService := authService.NewUsersService(
+		usersRepo,
+		kafkaDispatcher,
+		log,
+		cfg.Auth.AccessSecret,
+		cfg.Auth.AccessDuration,
+	)
 
 	// router
 	handler := httphandler.NewHandler(userService, log)

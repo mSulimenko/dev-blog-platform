@@ -12,11 +12,12 @@ const (
 )
 
 type Config struct {
-	Env  string `yaml:"env" env:"ENV" env-default:"local"`
-	HTTP HTTP   `yaml:"http" env:"env-required"`
-	DB   DB     `yaml:"db" env:"env-required"`
-	Auth Auth   `yaml:"auth" env:"env-required"`
-	GRPC GRPC   `yaml:"GRPC"`
+	Env   string      `yaml:"env" env:"ENV" env-default:"local"`
+	HTTP  HTTP        `yaml:"http" env:"env-required"`
+	DB    DB          `yaml:"db" env:"env-required"`
+	Auth  Auth        `yaml:"auth" env:"env-required"`
+	GRPC  GRPC        `yaml:"GRPC"`
+	Kafka KafkaConfig `yaml:"kafka"`
 }
 
 type HTTP struct {
@@ -42,6 +43,10 @@ type Auth struct {
 
 type GRPC struct {
 	Port string `yaml:"port" env-default:"50051"`
+}
+
+type KafkaConfig struct {
+	Brokers []string `yaml:"brokers"`
 }
 
 func Load() *Config {

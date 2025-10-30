@@ -4,6 +4,9 @@ run-articles:
 run-auth:
 	go run cmd/auth/main.go
 
+run-notify:
+	go run cmd/notify/main.go
+
 goose-down:
 	goose -dir migrations postgres "postgres://user:password@localhost:5432/dev_blog?sslmode=disable" down
 

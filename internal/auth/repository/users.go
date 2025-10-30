@@ -21,12 +21,12 @@ func NewUsersRepository(pool *pgxpool.Pool) *UsersRepository {
 
 func (u *UsersRepository) CreateUser(ctx context.Context, user *models.User) error {
 	q := `
-		INSERT INTO users (username, email, password_hash) 
-		VALUES ($1, $2, $3)
+		INSERT INTO users (username, email, password_hash, verification_token) 
+		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at
 `
 
-	err := u.db.QueryRow(ctx, q, user.Username, user.Email, user.PasswordHash).
+	err := u.db.QueryRow(ctx, q, user.Username, user.Email, user.PasswordHash, user.VerificationToken).
 		Scan(&user.ID, &user.CreatedAt)
 
 	if err != nil {
@@ -39,7 +39,7 @@ func (u *UsersRepository) CreateUser(ctx context.Context, user *models.User) err
 func (u *UsersRepository) GetUserByID(ctx context.Context, id string) (*models.User, error) {
 	var user models.User
 	q := `
-        SELECT id, email, username, password_hash, role, created_at 
+        SELECT id, email, username, password_hash, role, verification_token, created_at 
         FROM users WHERE id = $1`
 	err := u.db.QueryRow(ctx, q, id).Scan(
 		&user.ID,
@@ -47,6 +47,7 @@ func (u *UsersRepository) GetUserByID(ctx context.Context, id string) (*models.U
 		&user.Username,
 		&user.PasswordHash,
 		&user.Role,
+		&user.VerificationToken,
 		&user.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -60,7 +61,7 @@ func (u *UsersRepository) GetUserByID(ctx context.Context, id string) (*models.U
 func (u *UsersRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
 	q := `
-        SELECT id, email, username, password_hash, role, created_at 
+        SELECT id, email, username, password_hash, role, verification_token, created_at 
         FROM users WHERE email = $1`
 	err := u.db.QueryRow(ctx, q, email).Scan(
 		&user.ID,
@@ -68,6 +69,7 @@ func (u *UsersRepository) GetUserByEmail(ctx context.Context, email string) (*mo
 		&user.Username,
 		&user.PasswordHash,
 		&user.Role,
+		&user.VerificationToken,
 		&user.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -78,9 +80,32 @@ func (u *UsersRepository) GetUserByEmail(ctx context.Context, email string) (*mo
 	return &user, nil
 }
 
+func (u *UsersRepository) FindByVerificationToken(ctx context.Context, token string) (*models.User, error) {
+	user := models.User{}
+	q := `
+        SELECT id, email, username, password_hash, role, verification_token, created_at 
+        FROM users WHERE verification_token = $1`
+	err := u.db.QueryRow(ctx, q, token).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Username,
+		&user.PasswordHash,
+		&user.Role,
+		&user.VerificationToken,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, models.ErrUserNotFound
+		}
+		return nil, fmt.Errorf("get user with token %v: %w", token, err)
+	}
+	return &user, nil
+}
+
 func (u *UsersRepository) ListUsers(ctx context.Context) ([]*models.User, error) {
 	var users []*models.User
-	q := `SELECT id, email, username, password_hash, role, created_at 
+	q := `SELECT id, email, username, password_hash, role, verification_token, created_at 
         FROM users 
 `
 	rows, err := u.db.Query(ctx, q)
@@ -97,6 +122,7 @@ func (u *UsersRepository) ListUsers(ctx context.Context) ([]*models.User, error)
 			&user.Username,
 			&user.PasswordHash,
 			&user.Role,
+			&user.VerificationToken,
 			&user.CreatedAt,
 		)
 		if err != nil {
@@ -122,10 +148,13 @@ func (u *UsersRepository) UpdateUser(ctx context.Context, user *models.User) err
                  email = $1, 
                  username = $2, 
                  password_hash = $3,
-                 role = $4
-             WHERE id = $5`
+                 role = $4,
+                 verification_token = $5
+             WHERE id = $6`
 
-	_, err := u.db.Exec(ctx, q, user.Email, user.Username, user.PasswordHash, user.Role, user.ID)
+	_, err := u.db.Exec(
+		ctx, q, user.Email, user.Username, user.PasswordHash, user.Role, user.VerificationToken, user.ID,
+	)
 	if err != nil {
 		return fmt.Errorf("update user %s: %w", user.ID, err)
 	}
