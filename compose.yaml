@@ -67,9 +67,10 @@ services:
       dockerfile: cmd/notify/Dockerfile
     environment:
       - NOTIFY_CONFIG_PATH=./configs/notify.yaml
+      - KAFKA_BROKERS=kafka:9092
     depends_on:
       kafka:
-        condition: service_healthy
+        condition: service_started
 
 volumes:
   postgres_data:

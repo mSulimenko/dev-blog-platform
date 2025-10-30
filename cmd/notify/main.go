@@ -15,8 +15,6 @@ func main() {
 	fmt.Println("Starting notify")
 	cfg := config.Load()
 
-	fmt.Println(cfg)
-
 	log := logger.New(cfg.Env)
 	defer log.Sync()
 

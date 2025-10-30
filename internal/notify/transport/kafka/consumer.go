@@ -46,6 +46,8 @@ func (c *Consumer) Start() {
 	}
 	defer partitionConsumer.Close()
 
+	c.log.Info("Started listening topic ", userRegisteredTopic)
+
 	for {
 		select {
 		case msg := <-partitionConsumer.Messages():
