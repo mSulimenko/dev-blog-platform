@@ -1,0 +1,9 @@
+env: local
+kafka:
+  brokers:
+    - "localhost:9092"
+email:
+  smtp_host: "smtp.gmail.com"
+  smtp_port: "587"
+  from_email: "sulimenko.maxim@gmail.com"
+  from_password: "gcgu ijre bqxv qpzs"

@@ -13,3 +13,6 @@ auth:
   access_duration: "15m"
 grpc:
   port: "50051"
+kafka:
+  brokers:
+    - "localhost:9092"
