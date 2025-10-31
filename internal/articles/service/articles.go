@@ -50,7 +50,7 @@ func (a *ArticlesService) CreateArticle(ctx context.Context, req dto.CreateReque
 		return nil, fmt.Errorf("failed Create Article: %w", err)
 	}
 
-	if err = a.cache.InvalidateLatestArticles(context.Background()); err != nil {
+	if err = a.cache.InvalidateLatestArticles(ctx); err != nil {
 		a.log.Error("Failed to invalidate cache", "error", err)
 	}
 
@@ -126,6 +126,10 @@ func (a *ArticlesService) UpdateArticle(ctx context.Context,
 	updatedArticle, err := a.repo.UpdateArticle(ctx, articleId, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update article: %w", err)
+	}
+
+	if err = a.cache.InvalidateLatestArticles(ctx); err != nil {
+		a.log.Error("Failed to invalidate cache", "error", err)
 	}
 
 	response := dto.FromArticleModel(updatedArticle)
