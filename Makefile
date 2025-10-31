@@ -7,6 +7,9 @@ run-auth:
 run-notify:
 	go run cmd/notify/main.go
 
+run-seed:
+	go run scripts/seed.go
+
 goose-down:
 	goose -dir migrations postgres "postgres://user:password@localhost:5432/dev_blog?sslmode=disable" down
 

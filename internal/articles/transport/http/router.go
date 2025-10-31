@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/dto"
+	"github.com/mSulimenko/dev-blog-platform/internal/articles/models"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/transport/grpc"
 	"go.uber.org/zap"
 )
@@ -16,6 +17,7 @@ type ArticlesServiceInterface interface {
 	DeleteArticle(ctx context.Context, articleId string, userID string) error
 	ListArticles(ctx context.Context, req dto.ListRequest) (*dto.ListResponse, error)
 	UpdateArticle(ctx context.Context, articleId string, req dto.UpdateRequest, userID string) (*dto.ArticleResponse, error)
+	GetLatestArticles(ctx context.Context, limit int) ([]*models.Article, error)
 }
 
 type Handler struct {
@@ -48,6 +50,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 			// Публичные endpoints
 			r.Get("/", h.ListArticles)   // GET /api/v1/articles
 			r.Get("/{id}", h.GetArticle) // GET /api/v1/articles/{id}
+			r.Get("/latest", h.GetLatestArticles)
 
 			// Защищенные endpoints
 			r.Group(func(r chi.Router) {

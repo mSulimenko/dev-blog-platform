@@ -12,10 +12,11 @@ const (
 )
 
 type Config struct {
-	Env  string `yaml:"env" env:"ENV" env-default:"local"`
-	HTTP HTTP   `yaml:"http"`
-	DB   DB     `yaml:"db"`
-	GRPC GRPC   `yaml:"grpc"`
+	Env   string `yaml:"env" env:"ENV" env-default:"local"`
+	HTTP  HTTP   `yaml:"http"`
+	DB    DB     `yaml:"db"`
+	GRPC  GRPC   `yaml:"grpc"`
+	Redis Redis  `yaml:"redis"`
 }
 
 type HTTP struct {
@@ -39,6 +40,12 @@ type GRPC struct {
 	Addr         string        `yaml:"addr" env:"GRPC_ADDR"`
 	MaxRetries   uint          `yaml:"max_retries"`
 	RetryTimeout time.Duration `yaml:"retry_timeout"`
+}
+
+type Redis struct {
+	Addr     string `yaml:"addr" env:"REDIS_ADDR" env-default:"localhost:6379"`
+	Password string `yaml:"password" env:"REDIS_PASSWORD"`
+	DB       int    `yaml:"db" env:"REDIS_DB" env-default:"0"`
 }
 
 func Load() *Config {

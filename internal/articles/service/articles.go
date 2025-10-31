@@ -14,17 +14,26 @@ type ArticlesRepo interface {
 	GetArticleById(ctx context.Context, id string) (*models.Article, error)
 	DeleteArticle(ctx context.Context, id string) error
 	ListArticles(ctx context.Context, params models.ListArticleParams) ([]*models.Article, error)
+	GetLatestArticles(ctx context.Context, limit int) ([]*models.Article, error)
+}
+
+type ArticlesCache interface {
+	GetLatestArticles(ctx context.Context) ([]*models.Article, error)
+	SetLatestArticles(ctx context.Context, articles []*models.Article) error
+	InvalidateLatestArticles(ctx context.Context) error
 }
 
 type ArticlesService struct {
-	log  *zap.SugaredLogger
-	repo ArticlesRepo
+	log   *zap.SugaredLogger
+	repo  ArticlesRepo
+	cache ArticlesCache
 }
 
-func NewArticlesService(log *zap.SugaredLogger, repo ArticlesRepo) *ArticlesService {
+func NewArticlesService(log *zap.SugaredLogger, repo ArticlesRepo, cache ArticlesCache) *ArticlesService {
 	return &ArticlesService{
-		log:  log,
-		repo: repo,
+		log:   log,
+		repo:  repo,
+		cache: cache,
 	}
 }
 
@@ -40,6 +49,11 @@ func (a *ArticlesService) CreateArticle(ctx context.Context, req dto.CreateReque
 	if err != nil {
 		return nil, fmt.Errorf("failed Create Article: %w", err)
 	}
+
+	if err = a.cache.InvalidateLatestArticles(ctx); err != nil {
+		a.log.Error("Failed to invalidate cache", "error", err)
+	}
+
 	resp := dto.FromArticleModel(article)
 	return &resp, nil
 }
@@ -114,6 +128,30 @@ func (a *ArticlesService) UpdateArticle(ctx context.Context,
 		return nil, fmt.Errorf("failed to update article: %w", err)
 	}
 
+	if err = a.cache.InvalidateLatestArticles(ctx); err != nil {
+		a.log.Error("Failed to invalidate cache", "error", err)
+	}
+
 	response := dto.FromArticleModel(updatedArticle)
 	return &response, nil
+}
+
+func (a *ArticlesService) GetLatestArticles(ctx context.Context, limit int) ([]*models.Article, error) {
+	articles, err := a.cache.GetLatestArticles(ctx)
+	if err == nil {
+		return articles, nil
+	}
+
+	articles, err = a.repo.GetLatestArticles(ctx, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(articles) > 0 {
+		if err = a.cache.SetLatestArticles(ctx, articles); err != nil {
+			a.log.Error("Failed to cache latest articles", "error", err)
+		}
+	}
+
+	return articles, nil
 }

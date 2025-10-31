@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/mSulimenko/dev-blog-platform/internal/articles/cache"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/config"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/repository"
 	"github.com/mSulimenko/dev-blog-platform/internal/articles/service"
@@ -15,6 +16,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -41,11 +43,22 @@ func main() {
 	}
 	log.Info("Migrations applied successfully")
 
+	// cache
+	articlesCache := cache.NewRedisCache(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.DB)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err = articlesCache.Ping(ctx); err != nil {
+		log.Fatalf("Failed to connect to Redis: %v", err)
+	}
+	log.Info("Connected to Redis successfully")
+
 	// repo
 	articlesRepo := repository.NewArticlesRepository(dbpool)
 
 	// service
-	articleService := service.NewArticlesService(log, articlesRepo)
+	articleService := service.NewArticlesService(log, articlesRepo, articlesCache)
 
 	// grpc client
 	grpcAuthClient, err := grpcclient.NewAuthClient(context.Background(),

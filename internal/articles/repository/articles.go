@@ -184,3 +184,41 @@ func (a *ArticlesRepository) buildListQuery(reqParams models.ListArticleParams) 
 
 	return q, values
 }
+
+func (a *ArticlesRepository) GetLatestArticles(ctx context.Context, limit int) ([]*models.Article, error) {
+	q := `
+        SELECT id, title, content, author_id, status, created_at, updated_at 
+        FROM articles 
+--         WHERE status = 'published'
+        ORDER BY created_at DESC 
+        LIMIT $1`
+
+	var articles []*models.Article
+	rows, err := a.db.Query(ctx, q, limit)
+	if err != nil {
+		return nil, fmt.Errorf("querying latest articles: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var article models.Article
+		if err = rows.Scan(
+			&article.Id,
+			&article.Title,
+			&article.Content,
+			&article.AuthorId,
+			&article.Status,
+			&article.CreatedAt,
+			&article.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scanning rows: %w", err)
+		}
+		articles = append(articles, &article)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows: %w", err)
+	}
+
+	return articles, nil
+}
