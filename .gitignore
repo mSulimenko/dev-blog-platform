@@ -27,4 +27,4 @@ go.work.sum
 # Editor/IDE
 .idea/
 /configs/articles.yaml
-/Вопросы
+/Вопросы.txt
