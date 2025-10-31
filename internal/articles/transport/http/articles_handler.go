@@ -170,3 +170,29 @@ func (h *Handler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handler) GetLatestArticles(w http.ResponseWriter, r *http.Request) {
+	limit := 10 // по умолчанию 10 статей
+
+	articles, err := h.articlesService.GetLatestArticles(r.Context(), limit)
+	if err != nil {
+		h.log.Errorw("Failed to get latest articles", "error", err)
+		sendError(w, http.StatusInternalServerError, ErrCodeInternal, "internal error")
+		return
+	}
+
+	articleResponses := make([]dto.ArticleResponse, len(articles))
+	for i, article := range articles {
+		articleResponses[i] = dto.FromArticleModel(article)
+	}
+
+	response := dto.ListResponse{
+		Articles: articleResponses,
+		Total:    len(articleResponses),
+		Offset:   0,
+		Limit:    limit,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
